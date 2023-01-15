@@ -12,8 +12,9 @@ struct Args {
 
     #[arg(long, default_value_t = String::from("hot"))]
     sort: String,
-    // #[arg(long, default_value_t = false)]
-    // : bool,
+   
+    #[arg(long, default_value_t = -1)]
+    seconds: i32,
 }
 
 use serde_derive::Deserialize;
@@ -50,6 +51,7 @@ fn get_api(url: &str) -> Result<String, ureq::Error> {
 }
 
 fn get_local_time(timestamp: f32) -> String {
+    
     let datetime: DateTime<Utc> =
         DateTime::from_utc(NaiveDateTime::from_timestamp(timestamp as i64, 0), Utc);
     let local_datetime = datetime.with_timezone(&Local);
@@ -62,7 +64,7 @@ fn main() {
         args.subreddit, args.sort
     );
 
-    let seconds = 2;
+    let seconds = args.seconds;
 
     let mut posts_set = HashSet::<String>::new();
 
@@ -71,7 +73,9 @@ fn main() {
         let mut json_data = String::new();
         match response_data {
             Ok(response) => json_data = response,
-            Err(_) => { /* some kind of io/transport error */ }
+            Err(_) => {
+                //  !panic!("Request failed!");
+                }
         };
 
         let json_string: RedditResponse = serde_json::from_str(&json_data).unwrap();
@@ -88,6 +92,10 @@ fn main() {
                 );
             }
         }
-        sleep(Duration::from_secs(seconds));
+        if seconds == -1
+        {
+            break;
+        }
+        sleep(Duration::from_secs(seconds as u64));
     }
 }
