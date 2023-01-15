@@ -53,12 +53,15 @@ fn get_api(url: &str) -> Result<String, ureq::Error> {
 fn get_local_time(timestamp: f32) -> String {
     
     let datetime: DateTime<Utc> =
-        DateTime::from_utc(NaiveDateTime::from_timestamp(timestamp as i64, 0), Utc);
+        DateTime::from_utc(NaiveDateTime::from_timestamp_opt(timestamp as i64, 0).unwrap(), Utc);
     let local_datetime = datetime.with_timezone(&Local);
     local_datetime.format("%d/%m/%Y %H:%M").to_string()
 }
 fn main() {
     let args = Args::parse();
+    if args.sort != "new" && args.sort != "top" && args.sort != "hot"{
+        panic!("wrong sort argument!\n accepted values: new, top, hot!");
+    }
     let url = format!(
         "https://www.reddit.com/r/{}/{}.json",
         args.subreddit, args.sort
